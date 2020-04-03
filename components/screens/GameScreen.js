@@ -33,7 +33,6 @@ const renderListItem = (listLength, itemData) => (
 	</View>
 );
 
-
 const GameScreen = props => {
 	// manually lock screen orientation when this view is initialized
 	// ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
