@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 // useRef - hook that allows to create object you can bind to inputs
 // also allows to define value that survives re-rendering
-import { View, Text, StyleSheet, Alert, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, FlatList, Dimensions } from 'react-native';
 // vector-icons allows for rendering vector images/icons and access to icon components
 import { Ionicons } from '@expo/vector-icons';
 
@@ -39,6 +39,8 @@ const GameScreen = props => {
 	// state already has been created when re-rendering. 
 	const [currentGuess, setCurrentGuess] = useState(initialGuess);
 	const [pastGuesses, setPastGuesses] = useState([initialGuess.toString()]);
+	const [availableDeviceWidth, setAvailableDeviceWidth] = useState(Dimensions.get('window').width);
+	const [availableDeviceHeight, setAvailableDeviceHeight] = useState(Dimensions.get('window').height);
 
 	// set the initial value for the useRef object;
 	// useRef objects come with a "current" key where you would store
@@ -59,6 +61,17 @@ const GameScreen = props => {
 	// would have to add props as the input which changes when the parent component changes.
 	// only want to watch for changes occuring within these two.
 	const { userChoice, onGameOver } = props;
+
+	useEffect(() => {
+		const updateLayout = () => {
+			setAvailableDeviceWidth(Dimensions.get('window').width);
+			setAvailableDeviceHeight(Dimensions.get('window').height);
+		}
+		Dimensions.addEventListener('change', updateLayout);
+		return () => {
+			Dimensions.removeEventListener('change', updateLayout);
+		}
+	});
 
 	// useEffect runs after every render cycle, and will check if conditions 
 	// are met to trigger the effect.
@@ -98,6 +111,32 @@ const GameScreen = props => {
 		// nextNumber (the next guess) to the front of the list.
 		// currentGuess would not work because React wouldn't have updated the state and re-rendered the component yet.
 		setPastGuesses(currentPastGuesses => [nextNumber.toString(), ...currentPastGuesses])
+	}
+
+	// change the overall template based on dimensions
+	if (availableDeviceHeight < 500) {
+		return (
+			<View style={styles.screen}>
+				<Text style={DefaultStyles.titleText}>Opponent's Guess</Text>
+				<View style={styles.controls}>
+					<MainButton onPress={nextGuessHandler.bind(this, 'lower')}>
+						<Ionicons name="md-remove" size={24} color="white" />
+					</MainButton>
+					<NumberContainer>{currentGuess}</NumberContainer>
+					<MainButton onPress={nextGuessHandler.bind(this, 'greater')}>
+						<Ionicons name="md-add" size={24} color="white" />
+					</MainButton>
+				</View>
+				<View style={styles.listContainer}>
+					<FlatList
+						keyExtractor={(item) => item}
+						data={pastGuesses}
+						renderItem={renderListItem.bind(this, pastGuesses.length)}
+						contentContainerStyle={styles.list}
+					/>
+				</View>
+			</View>
+		);
 	}
 
 	// nextGuessHandler is set to trigger when the button is pressed, but uses
@@ -154,12 +193,18 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		// free space around the buttons on left and right equally distributed
 		justifyContent: 'space-around',
-		marginTop: 20,
+		marginTop: Dimensions.get('window').height > 600 ? 20 : 5,
 		width: 400,
 		maxWidth: '90%'
 	},
+	controls: {
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		alignItems: 'center',
+		width: '80%'
+	},
 	listContainer: {
-		width: '60%',
+		width: Dimensions.get('window').width > 350 ? '60%' : '80%',
 		flex: 1
 	},
 	list: {

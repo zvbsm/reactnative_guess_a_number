@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { 
 	View, 
@@ -8,7 +8,11 @@ import {
 	// "withoutFeedback" means that the UI does not show any indicator of the touch event happening
 	TouchableWithoutFeedback, 
 	Keyboard, 
-	Alert 
+	Alert,
+	// Dimensions only calculated when app is initialized. Does not recalculate on screen rotations
+	Dimensions,
+	ScrollView,
+	KeyboardAvoidingView
 } from 'react-native';
 
 import Card from '../Card';
@@ -25,6 +29,21 @@ const StartGameScreen = props => {
 	const [enteredValue, setEnteredValue ] = useState('');
 	const [confirmed, setConfirmed] = useState(false);
 	const [selectedNumber, setSelectedNumber] = useState();
+	// useState to recalculate dimensions on screen rotation
+	const [buttonWidth, setButtonWidth] = useState(Dimensions.get('window').width / 4);
+
+	useEffect(() => {
+		const updateLayout = () => {
+			setButtonWidth(Dimensions.get('window').width / 4);
+		}
+		// run updateLayout when change event is triggered
+		Dimensions.addEventListener('change', updateLayout);
+		return () => {
+			// When the device rotates again, the event listener must be removed
+			// because a new one gets created. this will ensure only 1 event listener exists
+			Dimensions.removeEventListener('change', updateLayout);
+		}
+	});
 
 	const numberInputHandler = inputText => {
 		// number/number-pad - set on the keyboardType removes the decimal from ios
@@ -83,42 +102,52 @@ const StartGameScreen = props => {
 	// exist for ios so need alternate solution for ios
 
 	return (
-		<TouchableWithoutFeedback onPress={() => {
-			Keyboard.dismiss();
-		}}>
-			<View style={styles.screen}>
-				<TitleText style={styles.title}>Start New Game</TitleText>
-				<Card style={styles.inputContainer}>
-					<BodyText style={styles.text}>Select a Number</BodyText>
-					<Input
-						style={styles.input}
-						blurOnSubmit
-						autoCorrect={false}
-						keyboardType="numeric"
-						maxLength={2}
-						onChangeText={numberInputHandler}
-						value={enteredValue}
-					/>
-					<View style={styles.buttonContainer}>
-						<View style={styles.buttonView}>
-							<Button
-								title="Reset"
-								onPress={resetInputHandler}
-								color={Colors.accent}
+		<ScrollView>
+			{/*
+			- behavior="height" re-adjusts the entire height of the view
+			- behavior="padding" would add padding to the bottom of view (best for android)
+			- behavior="position" tells it to reposition the entire screen (best for iOS)
+			- keyboardVerticalOffest is used to adjust how far the view should move
+			*/}
+			<KeyboardAvoidingView behavior="position" keyboardVerticalOffset={30}>
+				<TouchableWithoutFeedback onPress={() => {
+					Keyboard.dismiss();
+				}}>
+					<View style={styles.screen}>
+						<TitleText style={styles.title}>Start New Game</TitleText>
+						<Card style={styles.inputContainer}>
+							<BodyText style={styles.text}>Select a Number</BodyText>
+							<Input
+								style={styles.input}
+								blurOnSubmit
+								autoCorrect={false}
+								keyboardType="numeric"
+								maxLength={2}
+								onChangeText={numberInputHandler}
+								value={enteredValue}
 							/>
-						</View>
-						<View style={styles.buttonView}>
-							<Button
-								title="Confirm"
-								onPress={confirmInputHandler}
-								color={Colors.primary}
-							/>
-						</View>
+							<View style={styles.buttonContainer}>
+								<View style={{ width: buttonWidth }}>
+									<Button
+										title="Reset"
+										onPress={resetInputHandler}
+										color={Colors.accent}
+									/>
+								</View>
+								<View style={{ width: buttonWidth }}>
+									<Button
+										title="Confirm"
+										onPress={confirmInputHandler}
+										color={Colors.primary}
+									/>
+								</View>
+							</View>
+						</Card>
+						{confirmedOutput}
 					</View>
-				</Card>
-				{confirmedOutput}
-			</View>
-		</TouchableWithoutFeedback>
+				</TouchableWithoutFeedback>
+			</KeyboardAvoidingView>
+		</ScrollView>
 	);
 }
 
@@ -135,9 +164,9 @@ const styles = StyleSheet.create({
 		fontFamily: 'open-sans'
 	},
 	inputContainer: {
-		width: 300,
-		// if device is too small, prevent view from extending 300 px
-		maxWidth: '80%',
+		width: '80%',
+		maxWidth: '95%',
+		minWidth: 300,
 		// centers the items horizontally, this is still a flexDirection of column
 		alignItems: 'center',
 		// shadow only works on iOS
@@ -152,7 +181,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15
 	},
 	buttonView: {
-		width: 100
+		// screen vs window only matters on Android. Window will exclude status bar height from calculation.
+		// window should be used in both iOS and Android to get the actual available space
+		width: Dimensions.get('window').width / 4
 	},
 	input: {
 		width: 50,
