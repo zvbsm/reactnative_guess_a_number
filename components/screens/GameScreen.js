@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, FlatList, Dimensions } from 'react-native';
 // vector-icons allows for rendering vector images/icons and access to icon components
 import { Ionicons } from '@expo/vector-icons';
+// only available within expo, tracks and allows for locking screen orientation regardless of app.json declaration
+// import { ScreenOrientation } from 'expo';
 
 import NumberContainer from '../NumberContainer';
 import Card from '../Card';
@@ -33,6 +35,13 @@ const renderListItem = (listLength, itemData) => (
 
 
 const GameScreen = props => {
+	// manually lock screen orientation when this view is initialized
+	// ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+	// get the current orientation
+	// ScreenOrientation.getOrientationAsync();
+	// watch for orientation changes
+	// ScreenOrientation.addOrientationChangeListener();
+
 	const initialGuess = generateRandomBetween(1, 100, props.userChoice);
 	// useState reruns when component rerenders, but react detects a state has already been initialized
 	// so it only sets the state for this component the first time it runs, because it will see the initial
