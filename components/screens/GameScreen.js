@@ -62,14 +62,6 @@ const GameScreen = props => {
 	const currentLow = useRef(1);
 	const currentHigh = useRef(100);
 
-	// object destructuring
-	// taking the variables from props and storing them in an object with the same names
-	// useEffect would then refer to use "userChoice" for example instead of  "props.userChoice"
-	// this allows for adding userChoice and onGameOver as inputs in useEffect. otherwise,
-	// would have to add props as the input which changes when the parent component changes.
-	// only want to watch for changes occuring within these two.
-	const { userChoice, onGameOver } = props;
-
 	useEffect(() => {
 		const updateLayout = () => {
 			setAvailableDeviceWidth(Dimensions.get('window').width);
@@ -81,6 +73,13 @@ const GameScreen = props => {
 		}
 	});
 
+	// object destructuring
+	// taking the variables from props and storing them in an object with the same names
+	// useEffect would then refer to use "userChoice" for example instead of  "props.userChoice"
+	// this allows for adding userChoice and onGameOver as inputs in useEffect. otherwise,
+	// would have to add props as the input which changes when the parent component changes.
+	// only want to watch for changes occuring within these two.
+	const { userChoice, onGameOver } = props;
 	// useEffect runs after every render cycle, and will check if conditions 
 	// are met to trigger the effect.
 	useEffect(() => {
